@@ -1,0 +1,54 @@
+﻿@page "/fetchdata"
+@using BooksCatalogue.Shared.Models
+@inject HttpClient Http
+
+<h3>Books List</h3>
+
+@if (books == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Title</th>
+                <th>Author</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var book in books)
+            {
+                <tr>
+                    <td>@book.Id</td>
+                    <td>@book.Title</td>
+                    <td>@book.Author</td>
+                    <td>
+                        <button @onclick="() => DeleteBook(book.Id)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Book> books;
+
+    protected override async Task OnInitializedAsync()
+    {
+        books = await Http.GetFromJsonAsync<List<Book>>("api/books");
+    }
+
+    private async Task DeleteBook(int id)
+    {
+        var response = await Http.DeleteAsync($"api/books/{id}");
+        if (response.IsSuccessStatusCode)
+        {
+            books = await Http.GetFromJsonAsync<List<Book>>("api/books");
+        }
+    }
+}

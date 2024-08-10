@@ -1,0 +1,78 @@
+﻿@page "/books"
+@using BooksCatalogue.Client.Services
+@using BooksCatalogue.Shared.Models
+
+@inject IBookService BookService
+
+<h3>Books</h3>
+
+<!-- Форма для додавання книги -->
+<div class="form-group d-inline-flex">
+    <input type="text" @bind="newBookTitle" placeholder="Title" class="form-control" />
+    <input type="text" @bind="newBookAuthor" placeholder="Author" class="form-control" />
+    <button @onclick="AddBook" class="btn btn-primary">Add </button>
+</div>
+
+<!-- Список книг -->
+@if (books == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Title</th>
+                <th>Author</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var book in books)
+            {
+                <tr>
+                    <td>@book.Id</td>
+                    <td>@book.Title</td>
+                    <td>@book.Author</td>
+                    <td>
+                        <button @onclick="() => DeleteBook(book.Id)" class="btn btn-danger">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Book> books;
+    private string newBookTitle;
+    private string newBookAuthor;
+
+    protected override async Task OnInitializedAsync()
+    {
+        books = await BookService.GetBooksAsync();
+    }
+
+    private async Task AddBook()
+    {
+        var newBook = new Book
+            {
+                Title = newBookTitle,
+                Author = newBookAuthor,
+                PublishedDate = DateTime.Now
+            };
+
+        await BookService.AddBookAsync(newBook);
+        books = await BookService.GetBooksAsync();
+        newBookTitle = string.Empty;
+        newBookAuthor = string.Empty;
+    }
+
+    private async Task DeleteBook(int id)
+    {
+        await BookService.DeleteBookAsync(id);
+        books = await BookService.GetBooksAsync();
+    }
+}
